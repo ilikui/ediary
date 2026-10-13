@@ -1,0 +1,5 @@
+Options -Indexes
+
+<FilesMatch "^(README\.md|\.gitignore|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
