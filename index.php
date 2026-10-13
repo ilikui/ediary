@@ -15,7 +15,7 @@ try {
 function e(string $value): string { return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); }
 function csrf_token(): string { if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32)); return $_SESSION['csrf']; }
 function verify_csrf(): void { if (!hash_equals(csrf_token(), (string)($_POST['csrf'] ?? ''))) { http_response_code(419); exit('Invalid form token. Go back and retry.'); } }
-function redirect_to(string $url = 'index.php'): never { header('Location: ' . $url); exit; }
+function redirect_to(string $url = 'index.php') { header('Location: ' . $url); exit; }
 function logged_in(): bool { return isset($_SESSION['user_id']) && is_int($_SESSION['user_id']); }
 $userCount = (int)$pdo->query('SELECT COUNT(*) FROM users')->fetchColumn(); $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
