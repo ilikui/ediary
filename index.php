@@ -150,7 +150,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             if (!is_array($item) || trim((string)($item['title']??''))==='') continue;
                             $title=trim((string)$item['title']); $body=(string)($item['content']??'');
                             if (strlen($body)>2000000) continue;
-                            $type=in_array(($item['note_type']??'note'),['note','card','journal'],true)?$item['note_type']:'note';
+                            $importType=(string)($item['note_type']??'note');
+                            $type=in_array($importType,['note','card','journal'],true)?$importType:'note';
                             $insert->execute([$uid,$title,$body,trim((string)($item['tags']??'')),!empty($item['is_pinned'])?1:0,$type,0,'',preg_match('/^\d{4}-\d{2}-\d{2}$/',(string)($item['journal_date']??''))?(string)$item['journal_date']:'','']);
                             $newId=(int)$pdo->lastInsertId(); $pdo->prepare('UPDATE notes SET slug=? WHERE id=?')->execute([slugify($title).'-'.$newId,$newId]); $count++;
                         }
