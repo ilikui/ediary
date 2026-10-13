@@ -30,7 +30,7 @@ function verify_csrf(): void { if (!hash_equals(csrf_token(), (string)($_POST['c
 function redirect_to(string $url = 'index.php') { header('Location: '.$url); exit; }
 function logged_in(): bool { return isset($_SESSION['user_id']) && is_int($_SESSION['user_id']); }
 function slugify(string $text): string {
-    $text = trim(mb_strtolower($text, 'UTF-8'));
+    $text = trim(function_exists('mb_strtolower') ? mb_strtolower($text, 'UTF-8') : strtolower($text));
     $text = preg_replace('/[^\pL\pN]+/u', '-', $text) ?? '';
     $text = trim($text, '-');
     return substr($text !== '' ? $text : 'note', 0, 70);
@@ -53,6 +53,10 @@ function markdown_html(string $source): string {
             $url = html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
             if (!preg_match('/^https?:\/\//i', $url)) return $m[1];
             return '<a href="'.e($url).'" target="_blank" rel="noopener noreferrer">'.$m[1].'</a>';
+        }, $safe) ?? $safe;
+        $safe = preg_replace_callback('/\\[\\[([^\\]]+)\\]\\]/u', function($m) {
+            $title = html_entity_decode($m[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            return '<a href="index.php?wiki='.e(rawurlencode($title)).'">'.$m[1].'</a>';
         }, $safe) ?? $safe;
         $lines = explode("\n", $safe); $rendered = []; $list = false;
         foreach ($lines as $line) {
@@ -181,7 +185,7 @@ if (logged_in()) {
         if ($tagFilter!=='' && !in_array($tagFilter,parse_tags((string)$n['tags']),true)) return false;
         if ($dateFilter!=='' && substr((string)($n['journal_date']?:$n['created_at']),0,10)!==$dateFilter) return false;
         if ($typeFilter!=='' && $n['note_type']!==$typeFilter) return false;
-        if ($wiki!=='' && mb_strtolower((string)$n['title'],'UTF-8')!==mb_strtolower($wiki,'UTF-8')) return false;
+        if ($wiki!=='' && (function_exists('mb_strtolower') ? mb_strtolower((string)$n['title'],'UTF-8') : strtolower((string)$n['title']))!==(function_exists('mb_strtolower') ? mb_strtolower($wiki,'UTF-8') : strtolower($wiki))) return false;
         return true;
     }));
     if ($wiki!=='' && !$editNote && count($notes)===1) $editNote=$notes[0];
